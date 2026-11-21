@@ -14,12 +14,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let isFixed = false;
 
+  /* ---- Initialize Simulated Log Viewer ---- */
+  const dcLogger = new LabLogViewer({
+    containerId: 'dc-log-container',
+    labKey: 'dom-clobbering',
+    title: 'Client-Side DOM & JavaScript Runtime Audit (CWE-79)'
+  });
+
+  // Baseline startup logs
+  dcLogger.addLog({
+    source: 'browser:v8',
+    level: 'info',
+    message: 'ECMAScript execution context initialized. Window global scope active.'
+  });
+  dcLogger.addLog({
+    source: 'html:sanitizer',
+    level: 'info',
+    message: 'Input sanitizer v3.1 registered. Config: strip <code>&lt;script&gt;</code>, strip <code>on*</code> event handlers, allow <code>id</code>/<code>name</code>.'
+  });
+  dcLogger.addLog({
+    source: 'browser:dom',
+    level: 'warn',
+    message: 'DOM Named Access on Window object is active (HTML5 legacy behavior enabled).'
+  });
+
   /* ---- Toggle handler ---- */
   toggle.addEventListener('change', () => {
     isFixed = toggle.checked;
     vulnLabel.style.color = isFixed ? 'var(--text-dim)' : 'var(--red)';
     fixLabel.style.color  = isFixed ? 'var(--green)' : 'var(--text-dim)';
     resetDemo();
+
+    if (isFixed) {
+      dcLogger.addLog({
+        source: 'app:runtime',
+        level: 'audit',
+        message: 'Security policy reloaded: Block-scoped declarations & strict type assertions (<code>typeof candidate === \'string\'</code>) ENABLED.'
+      });
+      dcLogger.addLog({
+        source: 'sec:enforce',
+        level: 'blocked',
+        message: 'Defense active: Injected DOM elements cannot override scoped variables or pass string type checks.'
+      });
+    } else {
+      dcLogger.addLog({
+        source: 'app:runtime',
+        level: 'warn',
+        message: 'Security policy downgraded: Global window fallback lookups active. Input susceptible to DOM clobbering.'
+      });
+      dcLogger.addLog({
+        source: 'sec:policy',
+        level: 'warn',
+        message: 'Security posture downgraded: Vulnerability CWE-79 is active.'
+      });
+    }
   });
 
   /* ---- Payload buttons ---- */
@@ -33,7 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---- Reset ---- */
   if (resetBtn) {
-    resetBtn.addEventListener('click', resetDemo);
+    resetBtn.addEventListener('click', () => {
+      resetDemo();
+      dcLogger.addLog({
+        source: 'sandbox:ctl',
+        level: 'info',
+        message: 'DOM Inspector & runtime variables reset to baseline.'
+      });
+    });
   }
 
   /* ---- Run a payload ---- */
@@ -68,10 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
         attackResult = 'App crashes or misreads config — attacker can cause denial of service or redirect behavior';
 
         stepByStep = [
-          { icon: '📝', title: 'Injection', desc: `Attacker submits <code>${escapeHTML(payloadHTML)}</code> in a user profile field.` },
-          { icon: '✅', title: 'Sanitizer passes it', desc: `No <code>&lt;script&gt;</code>, no event handlers — the sanitizer sees nothing dangerous.` },
-          { icon: '🌐', title: 'Browser creates global', desc: `The browser auto-creates <code>window.config</code> → the <code>&lt;img&gt;</code> element.` },
-          { icon: '💥', title: 'App reads clobbered value', desc: `Code that does <code>if (config) { use(config.url) }</code> now gets an HTMLImageElement instead of a JS object. <code>config.url</code> returns <code>undefined</code> — or the element's src attribute.` },
+          { icon: ICONS.fileText, title: 'Injection', desc: `Attacker submits <code>${escapeHTML(payloadHTML)}</code> in a user profile field.` },
+          { icon: ICONS.checkCircle, title: 'Sanitizer passes it', desc: `No <code>&lt;script&gt;</code>, no event handlers — the sanitizer sees nothing dangerous.` },
+          { icon: ICONS.globe, title: 'Browser creates global', desc: `The browser auto-creates <code>window.config</code> → the <code>&lt;img&gt;</code> element.` },
+          { icon: ICONS.zap, title: 'App reads clobbered value', desc: `Code that does <code>if (config) { use(config.url) }</code> now gets an HTMLImageElement instead of a JS object. <code>config.url</code> returns <code>undefined</code> — or the element's src attribute.` },
         ];
         break;
       }
@@ -87,10 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
         attackResult = 'Attacker\'s script is loaded and executed in the app\'s context — full XSS';
 
         stepByStep = [
-          { icon: '📝', title: 'Injection', desc: `Attacker posts a comment containing <code>${escapeHTML(payloadHTML)}</code>` },
-          { icon: '✅', title: 'Sanitizer passes it', desc: `It's just an <code>&lt;a&gt;</code> tag — a normal link. The sanitizer allows it.` },
-          { icon: '🌐', title: 'Browser creates global', desc: `The browser auto-creates <code>window.defaultURL</code> → the <code>&lt;a&gt;</code> element.` },
-          { icon: '💥', title: 'App loads attacker script', desc: `The app does <code>window.defaultURL || "safe-url"</code>. The element is <strong>truthy</strong>, so the fallback is skipped. When used as a string, the anchor's <code>.href</code> returns the attacker's URL. The app loads <code>https://evil.com/steal.js</code>.` },
+          { icon: ICONS.fileText, title: 'Injection', desc: `Attacker posts a comment containing <code>${escapeHTML(payloadHTML)}</code>` },
+          { icon: ICONS.checkCircle, title: 'Sanitizer passes it', desc: `It's just an <code>&lt;a&gt;</code> tag — a normal link. The sanitizer allows it.` },
+          { icon: ICONS.globe, title: 'Browser creates global', desc: `The browser auto-creates <code>window.defaultURL</code> → the <code>&lt;a&gt;</code> element.` },
+          { icon: ICONS.zap, title: 'App loads attacker script', desc: `The app does <code>window.defaultURL || "safe-url"</code>. The element is <strong>truthy</strong>, so the fallback is skipped. When used as a string, the anchor's <code>.href</code> returns the attacker's URL. The app loads <code>https://evil.com/steal.js</code>.` },
         ];
         break;
       }
@@ -109,10 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
         attackResult = 'App sends API requests with the attacker\'s key — data exfiltration';
 
         stepByStep = [
-          { icon: '📝', title: 'Injection', desc: `Attacker inserts <code>${escapeHTML(payloadHTML)}</code> into an email template.` },
-          { icon: '✅', title: 'Sanitizer passes it', desc: `A <code>&lt;form&gt;</code> with an <code>&lt;input&gt;</code> — no script involved. Sanitizer allows it.` },
-          { icon: '🌐', title: 'Browser creates globals', desc: `<code>window.settings</code> → the <code>&lt;form&gt;</code> element. Named inputs inside a form become its properties, so <code>settings.apiKey</code> → the <code>&lt;input&gt;</code> element.` },
-          { icon: '💥', title: 'App uses attacker value', desc: `Code reads <code>settings.apiKey</code> expecting a string <code>"sk-secret-123"</code>. Instead it gets an HTMLInputElement whose <code>.value</code> is <code>"ATTACKER_KEY"</code>. API calls now use the attacker's key.` },
+          { icon: ICONS.fileText, title: 'Injection', desc: `Attacker inserts <code>${escapeHTML(payloadHTML)}</code> into an email template.` },
+          { icon: ICONS.checkCircle, title: 'Sanitizer passes it', desc: `A <code>&lt;form&gt;</code> with an <code>&lt;input&gt;</code> — no script involved. Sanitizer allows it.` },
+          { icon: ICONS.globe, title: 'Browser creates globals', desc: `<code>window.settings</code> → the <code>&lt;form&gt;</code> element. Named inputs inside a form become its properties, so <code>settings.apiKey</code> → the <code>&lt;input&gt;</code> element.` },
+          { icon: ICONS.zap, title: 'App uses attacker value', desc: `Code reads <code>settings.apiKey</code> expecting a string <code>"sk-secret-123"</code>. Instead it gets an HTMLInputElement whose <code>.value</code> is <code>"ATTACKER_KEY"</code>. API calls now use the attacker's key.` },
         ];
         break;
       }
@@ -124,10 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clean up sandbox
     document.body.removeChild(sandboxDiv);
 
-    // Render the DOM viewer with step-by-step breakdown
+    // Render the DOM viewer with step-by-step breakdown using professional SVG icons
     viewerBody.innerHTML = `
       <div class="inject-area">
-        <label>📍 Injection point: <strong style="color:var(--text)">${injectionPoint}</strong></label>
+        <label style="display:flex; align-items:center; gap:6px;">
+          ${ICONS.target}
+          <span>Injection point: <strong style="color:var(--text)">${injectionPoint}</strong></span>
+        </label>
         <textarea readonly style="margin-top:8px">${escapeHTML(payloadHTML)}</textarea>
       </div>
 
@@ -148,11 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="var-state">
         <div class="var-state__box var-state__box--before">
-          <h5>📋 ${escapeHTML(varName)} — Before</h5>
+          <h5>${ICONS.database} ${escapeHTML(varName)} — Before</h5>
           <div class="var-state__value">${escapeHTML(beforeVal)}</div>
         </div>
         <div class="var-state__box var-state__box--after">
-          <h5>💥 ${escapeHTML(varName)} — After</h5>
+          <h5>${ICONS.zap} ${escapeHTML(varName)} — After (Clobbered)</h5>
           <div class="var-state__value">${escapeHTML(afterVal)}</div>
         </div>
       </div>
@@ -164,8 +222,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     resultBox.className = 'result-box result-box--danger';
     resultBox.innerHTML =
-      `<strong style="color:var(--red)">✗ Clobbered:</strong> <code style="color:var(--cyan)">${escapeHTML(varName)}</code> was overwritten by a DOM element. ` +
+      `${ICONS.xCircle} <strong style="color:var(--red)">Clobbered:</strong> <code style="color:var(--cyan)">${escapeHTML(varName)}</code> was overwritten by a DOM element. ` +
       `The app's JavaScript now reads an attacker-controlled value instead of the expected one.`;
+
+    // Stream Simulated Attack Logs
+    dcLogger.addLogsStaggered([
+      {
+        source: 'html:sanitizer',
+        level: 'info',
+        message: `Parsed input markup: <code>${escapeHTML(payloadHTML)}</code>. 0 prohibited tags identified. Allowed by sanitization rules.`
+      },
+      {
+        source: 'browser:dom',
+        level: 'warn',
+        message: `Element inserted into DOM tree. Triggered Named Property Window Resolution algorithm.`
+      },
+      {
+        source: 'browser:window',
+        level: 'warn',
+        message: `Property conflict detected: <code>${escapeHTML(varName)}</code> mapped directly to <code>${escapeHTML(afterVal)}</code>.`
+      },
+      {
+        source: 'auditd:cwe-79',
+        level: 'critical',
+        isCritical: true,
+        message: `<strong>CRITICAL SECURITY EVENT:</strong> DOM Clobbering exploit confirmed! Global runtime property <code>${escapeHTML(varName)}</code> shadowed by untrusted HTML node. Application control flow hijacked.`,
+        detail: `Vulnerability: CWE-79 (DOM-Based Collision). Element attributes id/name bypassed sanitization and clobbered application variables without injecting a script tag. Result: ${attackResult}.`
+      }
+    ], 110);
 
     showToast('DOM Clobbering attack succeeded!', 'danger');
   }
@@ -231,11 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="var-state">
         <div class="var-state__box var-state__box--safe">
-          <h5>🛡️ ${escapeHTML(varName)} — Protected</h5>
+          <h5>${ICONS.shieldCheck} ${escapeHTML(varName)} — Protected</h5>
           <div class="var-state__value">${escapeHTML(protectedVal)}</div>
         </div>
         <div class="var-state__box var-state__box--safe">
-          <h5>✅ Defense</h5>
+          <h5>${ICONS.checkCircle} Defense</h5>
           <div class="var-state__value" style="font-size:0.78rem;">${mechanism}</div>
         </div>
       </div>
@@ -243,8 +327,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     resultBox.className = 'result-box result-box--success';
     resultBox.innerHTML =
-      `<strong style="color:var(--green)">✓ Blocked:</strong> The injected element exists in the DOM but cannot override ` +
-      `the app's <code style="color:var(--cyan)">${escapeHTML(varName)}</code> variable. Proper scoping and type-checking ensure the clobbered value is never used.`;
+      `${ICONS.checkCircle} <strong style="color:var(--green)">Blocked:</strong> The injected element exists in the DOM but cannot override ` +
+      `the app's <code style="color:var(--cyan)">${escapeHTML(varName)}</code> variable. Scoping and type guards ensure the clobbered value is rejected.`;
+
+    // Stream Defense Audit Logs
+    dcLogger.addLogsStaggered([
+      {
+        source: 'html:sanitizer',
+        level: 'info',
+        message: `Parsed input markup: <code>${escapeHTML(payloadHTML)}</code>. Appended to DOM tree.`
+      },
+      {
+        source: 'browser:dom',
+        level: 'info',
+        message: `Named access created window reference.`
+      },
+      {
+        source: 'app:guard',
+        level: 'audit',
+        message: `Applying defensive assertions: Checking candidate variable scope and type constraints.`
+      },
+      {
+        source: 'sec:enforce',
+        level: 'blocked',
+        message: `<strong>SECURITY AUDIT / BLOCKED:</strong> Clobbered DOM reference rejected. Assertion <code>${mechanism}</code> defended application state. Fallback to constant applied.`
+      }
+    ], 100);
 
     showToast('DOM Clobbering attempt blocked!', 'success');
   }
@@ -252,9 +360,10 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- Reset ---- */
   function resetDemo() {
     viewerBody.innerHTML = `
-      <p style="color:var(--text-dim); font-size:0.9rem; text-align:center; padding:40px 20px;">
-        Click a payload button below to run the demo
-      </p>
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 20px; color:var(--text-dim); text-align:center;">
+        ${ICONS.target}
+        <p style="font-size:0.9rem; margin:0;">Click a payload button below to run the demo</p>
+      </div>
     `;
     resultBox.className = 'result-box';
     resultBox.innerHTML = '<span style="color:var(--text-dim)">Click a payload button above to run the demo.</span>';

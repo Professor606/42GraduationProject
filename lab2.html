@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 2 — Open Redirect | SecLabs</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/lab2.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E">
 </head>
+
 <body>
 
   <!-- ==================== NAV ==================== -->
@@ -33,7 +35,11 @@
       <div class="lab-header">
         <div class="lab-header__meta">
           <div class="lab-header__icon" style="background:rgba(255,170,0,0.12); border:1px solid rgba(255,170,0,0.25);">
-            🔀
+            <svg class="icon icon--lg icon--orange" viewBox="0 0 24 24">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
           </div>
           <div>
             <h1 style="font-size:clamp(1.6rem,4vw,2.2rem); margin-bottom:4px;">Open Redirect</h1>
@@ -71,7 +77,8 @@
           The Vulnerable Code
         </h3>
         <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">
-          After login, the server blindly redirects to whatever URL is in the <code style="color:var(--cyan)">redirect</code> parameter.
+          After login, the server blindly redirects to whatever URL is in the <code
+            style="color:var(--cyan)">redirect</code> parameter.
         </p>
 
         <div class="code-block">
@@ -129,37 +136,32 @@
             </div>
           </div>
           <div class="browser-sim__body" id="or-sim-body">
-            <p style="color:var(--text-dim); font-size:0.9rem; text-align:center;">
-              🌐 Click a payload button below to simulate the attack
-            </p>
+            <div
+              style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:32px 16px; color:var(--text-dim); text-align:center;">
+              <svg class="icon icon--lg icon--cyan" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <p style="font-size:0.9rem; margin:0;">Click a payload button below to simulate the attack</p>
+            </div>
           </div>
         </div>
 
         <!-- Payload buttons -->
         <div class="payload-group">
-          <button class="payload-btn or-payload"
-                  data-url="https://evil-phishing.com/login"
-                  data-label="External domain">
-            ?redirect=https://evil-phishing.com/login
-          </button>
-          <button class="payload-btn or-payload"
-                  data-url="//attacker.com/steal"
-                  data-label="Protocol-relative">
-            ?redirect=//attacker.com/steal
-          </button>
-          <button class="payload-btn or-payload"
-                  data-url="https://trusted-bank.com@evil.com/fake"
-                  data-label="@-sign trick">
-            ?redirect=trusted-bank.com@evil.com
-          </button>
+          <button class="payload-btn or-payload" data-url="https://evil-phishing.com/login" data-label="External domain">?redirect=https://evil-phishing.com/login</button>
+          <button class="payload-btn or-payload" data-url="//attacker.com/steal" data-label="Protocol-relative">?redirect=//attacker.com/steal</button>
+          <button class="payload-btn or-payload" data-url="https://trusted-bank.com@evil.com/fake" data-label="@-sign trick">?redirect=trusted-bank.com@evil.com</button>
         </div>
 
         <!-- Result -->
-        <div class="result-box" id="or-result">
-          <span style="color:var(--text-dim)">Click a payload button above to run the demo.</span>
-        </div>
+        <div class="result-box" id="or-result"><span style="color:var(--text-dim)">Click a payload button above to run the demo.</span></div>
 
-        <button id="or-reset" class="btn btn--ghost btn--sm" style="margin-top:12px;">↺ Reset Demo</button>
+        <button id="or-reset" class="btn btn--ghost btn--sm" style="margin-top:12px;"><svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" /></svg> Reset Demo</button>
+
+        <!-- Simulated Logs -->
+        <div id="or-log-container"></div>
       </section>
 
       <!-- ==================== 4. WHY IT MATTERS ==================== -->
@@ -170,7 +172,8 @@
         </h3>
         <p style="color:var(--text); font-size:0.95rem; line-height:1.75; margin-bottom:12px;">
           Open redirects are phishing force multipliers. An attacker sends a link like
-          <code style="color:var(--orange); font-size:0.85rem;">https://trusted-bank.com/login?redirect=https://evil.com</code>
+          <code
+            style="color:var(--orange); font-size:0.85rem;">https://trusted-bank.com/login?redirect=https://evil.com</code>
           — the victim sees the trusted domain and clicks. They log in, get redirected to a fake page,
           and enter their credentials a second time thinking the first attempt failed.
         </p>
@@ -223,8 +226,14 @@
           and the user is sent to the homepage instead.
         </p>
 
-        <p style="color:var(--text-muted); font-size:0.88rem; margin-top:8px;">
-          👆 <strong>Toggle "Fixed" above</strong> and try the same payloads — the redirect is blocked.
+        <p
+          style="color:var(--text-muted); font-size:0.88rem; margin-top:8px; display:flex; align-items:center; gap:6px;">
+          <svg class="icon icon--sm icon--cyan" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span><strong>Toggle "Fixed" above</strong> and try the same payloads — the redirect is blocked.</span>
         </p>
       </section>
 
@@ -248,17 +257,82 @@
   <!-- ==================== FOOTER ==================== -->
   <footer class="footer">
     <div class="container">
-      <ul class="footer__links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="lab1.html">Clickjacking</a></li>
-        <li><a href="lab2.html">Open Redirect</a></li>
-        <li><a href="lab3.html">DOM Clobbering</a></li>
-      </ul>
-      <p>SecLabs — Educational web security labs. All attacks are simulated.</p>
+
+      <!-- Team Members & LinkedIn Showcase -->
+      <div class="footer__team">
+        <div class="footer__team-header">
+          <div class="footer__team-meta">
+            <span class="footer__team-eyebrow">Project Authors</span>
+          </div>
+        </div>
+
+        <div class="footer__team-grid">
+          <!-- Member 1: Ahmad Abu Laban -->
+          <div class="footer-member">
+            <div class="footer-member__avatar avatar--cyan"><span>AA</span></div>
+            <div class="footer-member__meta"><h5 class="footer-member__name" title="Ahmad Abu Laban">Ahmad Abu Laban</h5></div>
+            <a href="https://www.linkedin.com/in/ellprofessor" target="_blank" rel="noopener noreferrer" class="footer-member__linkedin" aria-label="Ahmad Abu Laban on LinkedIn">
+              <svg class="icon-linkedin" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <span>LinkedIn</span>
+              <svg class="icon-external" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </a>
+          </div>
+
+          <!-- Member 2: Muhnnad Saed -->
+          <div class="footer-member">
+            <div class="footer-member__avatar avatar--green"><span>MS</span></div>
+            <div class="footer-member__meta"><h5 class="footer-member__name" title="Muhnnad Saed">Muhnnad Saed</h5></div>
+            <a href="https://www.linkedin.com/in/mohnad-saed-796b05443" target="_blank" rel="noopener noreferrer" class="footer-member__linkedin" aria-label="Muhnnad Saed on LinkedIn">
+              <svg class="icon-linkedin" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <span>LinkedIn</span>
+              <svg class="icon-external" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </a>
+          </div>
+
+          <!-- Member 3: Mahmoud Adih -->
+          <div class="footer-member">
+            <div class="footer-member__avatar avatar--purple"><span>MA</span></div>
+            <div class="footer-member__meta"><h5 class="footer-member__name" title="Mahmoud Adih">Mahmoud Adih</h5></div>
+            <a href="https://www.linkedin.com/in/mahmoud-adih-a42258412" target="_blank" rel="noopener noreferrer" class="footer-member__linkedin" aria-label="Mahmoud Adih on LinkedIn">
+              <svg class="icon-linkedin" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <span>LinkedIn</span>
+              <svg class="icon-external" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </a>
+          </div>
+
+          <!-- Member 4: Osama AL-Sa'odi -->
+          <div class="footer-member">
+            <div class="footer-member__avatar avatar--orange"><span>OA</span></div>
+            <div class="footer-member__meta"><h5 class="footer-member__name" title="Osama AL-Sa'odi">Osama AL-Sa'odi</h5></div>
+            <a href="https://jo.linkedin.com/in/osama-al-sa-odi-415a161b0" target="_blank" rel="noopener noreferrer" class="footer-member__linkedin" aria-label="Osama AL-Sa'odi on LinkedIn">
+              <svg class="icon-linkedin" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <span>LinkedIn</span>
+              <svg class="icon-external" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </a>
+          </div>
+
+          <!-- Member 5: Zaid Almaiah -->
+          <div class="footer-member">
+            <div class="footer-member__avatar avatar--blue"><span>ZA</span></div>
+            <div class="footer-member__meta"><h5 class="footer-member__name" title="Zaid Almaiah">Zaid Almaiah</h5></div>
+            <a href="https://www.linkedin.com/in/zaid-ziad-almaiah-219b28336/" target="_blank" rel="noopener noreferrer" class="footer-member__linkedin" aria-label="Zaid Almaiah on LinkedIn">
+              <svg class="icon-linkedin" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+              <span>LinkedIn</span>
+              <svg class="icon-external" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Meta / Legal Bar -->
+      <div class="footer__bottom">
+        <p>© 2026 <strong>SecLabs</strong>. 42 Network Graduation Project.</p>
+      </div>
     </div>
   </footer>
 
   <script src="assets/js/main.js"></script>
   <script src="assets/js/lab2.js"></script>
 </body>
+
 </html>

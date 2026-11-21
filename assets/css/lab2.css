@@ -47,6 +47,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   overflow: hidden;
+  min-width: 0;
 }
 
 .browser-sim__lock {
@@ -58,6 +59,12 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -219,6 +226,8 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.82rem;
   line-height: 1.8;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .url-breakdown .label {
@@ -227,7 +236,29 @@
 }
 
 @media (max-width: 480px) {
+  .browser-sim__toolbar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .browser-sim__dots {
+    gap: 4px;
+  }
+  .browser-sim__dots span {
+    width: 8px;
+    height: 8px;
+  }
+  .browser-sim__body {
+    padding: 20px 14px;
+    min-height: 180px;
+  }
   .browser-sim__url-text {
     font-size: 0.7rem;
+  }
+  .login-page {
+    max-width: 100%;
+  }
+  .url-breakdown {
+    padding: 10px 12px;
+    font-size: 0.75rem;
   }
 }
